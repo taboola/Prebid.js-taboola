@@ -410,15 +410,22 @@ function fillTaboolaReqData(bidderRequest, bidRequest, data, context) {
     ext: getDeviceExtSignals(ortb2Device.ext)
   };
   deepSetValue(data, 'device', device);
-  const extractedUserId = userData.getUserId(gdprConsent, uspConsent);
-  if (data.user === undefined || data.user === null) {
-    data.user = {
-      buyeruid: 0,
-      ext: {}
+
+  const isDNT = ortb2Device.dnt === 1;
+
+  if (isDNT) {
+    data.user = {};
+  } else {
+    const extractedUserId = userData.getUserId(gdprConsent, uspConsent);
+    if (data.user === undefined || data.user === null) {
+      data.user = {
+        buyeruid: 0,
+        ext: {}
+      }
     }
-  }
-  if (extractedUserId && extractedUserId !== 0) {
-    deepSetValue(data, 'user.buyeruid', extractedUserId);
+    if (extractedUserId && extractedUserId !== 0) {
+      deepSetValue(data, 'user.buyeruid', extractedUserId);
+    }
   }
   if (data.regs?.ext === undefined || data.regs?.ext === null) {
     data.regs = {

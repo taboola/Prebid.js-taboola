@@ -603,6 +603,94 @@ describe('Taboola Adapter', function () {
 
         config.resetConfig()
       });
+
+      it('should strip user identifiers when DNT is enabled', function () {
+        getDataFromLocalStorage.returns(51525152);
+        hasLocalStorage.returns(true);
+        localStorageIsEnabled.returns(true);
+
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              dnt: 1,
+              ua: navigator.userAgent
+            },
+            user: {
+              id: 'ortb2UserId',
+              buyeruid: 'ortb2BuyerUid',
+              ext: {
+                eids: [{source: 'test', uids: [{id: 'testId'}]}]
+              }
+            }
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.user).to.deep.equal({});
+        expect(res.data.user.buyeruid).to.be.undefined;
+        expect(res.data.user.id).to.be.undefined;
+        expect(res.data.user.ext).to.be.undefined;
+      });
+
+      it('should still pass GDPR consent when DNT is enabled', function () {
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              dnt: 1,
+              ua: navigator.userAgent
+            }
+          },
+          gdprConsent: {
+            gdprApplies: true,
+            consentString: 'gdprConsentString',
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.user.ext.consent).to.equal('gdprConsentString');
+        expect(res.data.regs.ext.gdpr).to.equal(1);
+        expect(res.data.user.buyeruid).to.be.undefined;
+        expect(res.data.user.id).to.be.undefined;
+      });
+
+      it('should pass user identifiers when DNT is not enabled', function () {
+        getDataFromLocalStorage.returns(51525152);
+        hasLocalStorage.returns(true);
+        localStorageIsEnabled.returns(true);
+
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              dnt: 0,
+              ua: navigator.userAgent
+            }
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.user.buyeruid).to.equal(51525152);
+      });
+
+      it('should pass user identifiers when DNT is not set', function () {
+        getDataFromLocalStorage.returns(51525152);
+        hasLocalStorage.returns(true);
+        localStorageIsEnabled.returns(true);
+
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              ua: navigator.userAgent
+            }
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.user.buyeruid).to.equal(51525152);
+      });
     })
 
     describe('handle userid ', function () {
