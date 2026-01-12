@@ -415,6 +415,7 @@ function fillTaboolaReqData(bidderRequest, bidRequest, data, context) {
 
   if (isDNT) {
     data.user = {};
+    delete data.device.ifa;
   } else {
     const extractedUserId = userData.getUserId(gdprConsent, uspConsent);
     if (data.user === undefined || data.user === null) {

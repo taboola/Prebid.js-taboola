@@ -633,6 +633,39 @@ describe('Taboola Adapter', function () {
         expect(res.data.user.ext).to.be.undefined;
       });
 
+      it('should strip device.ifa when DNT is enabled', function () {
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              dnt: 1,
+              ua: navigator.userAgent,
+              ifa: 'test-ifa-identifier'
+            }
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.device.ifa).to.be.undefined;
+        expect(res.data.device.dnt).to.equal(1);
+      });
+
+      it('should preserve device.ifa when DNT is not enabled', function () {
+        const bidderRequest = {
+          ...commonBidderRequest,
+          ortb2: {
+            device: {
+              dnt: 0,
+              ua: navigator.userAgent,
+              ifa: 'test-ifa-identifier'
+            }
+          }
+        };
+
+        const res = spec.buildRequests([defaultBidRequest], bidderRequest);
+        expect(res.data.device.ifa).to.equal('test-ifa-identifier');
+      });
+
       it('should still pass GDPR consent when DNT is enabled', function () {
         const bidderRequest = {
           ...commonBidderRequest,
